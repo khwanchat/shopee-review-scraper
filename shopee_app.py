@@ -162,12 +162,6 @@ with st.sidebar.expander("⚙️ Advanced Settings"):
     
     headless_mode = st.checkbox("🕶️ Headless Mode", value=False, help="Run browser in background")
     
-    output_dir = st.text_input(
-        "📁 Output Directory",
-        value=os.path.expanduser("~/Desktop"),
-        help="Where to save the CSV file"
-    )
-    
     custom_filename = st.text_input(
         "📄 Custom Filename (optional)",
         placeholder="my_reviews",
@@ -339,6 +333,7 @@ with col1:
         
         # Download Section
         st.subheader("📥 Download Results")
+        st.info("💡 Files will download to your browser's Downloads folder")
         
         col_download1, col_download2 = st.columns(2)
         
@@ -424,8 +419,6 @@ with col2:
                 st.error("Please enter a Shopee product URL")
             elif not validate_shopee_url(url)[0]:
                 st.error("Please enter a valid Shopee product URL")
-            elif not os.path.exists(output_dir):
-                st.error("Output directory does not exist")
             else:
                 # Start scraping
                 st.session_state.scraping_active = True
