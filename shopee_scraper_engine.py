@@ -48,39 +48,59 @@ class ShopeeReviewScraper:
 
 def run_scraper_for_streamlit(url, rating_limits, progress_queue, headless=False, scroll_speed="Medium"):
     """
-    Simplified function for Streamlit Cloud (no Selenium)
+    Fast demo function for Streamlit Cloud
     """
     try:
-        progress_queue.put(("progress", "🚀 Initializing scraper...", 0.1))
-        time.sleep(2)
+        progress_queue.put(("progress", "🚀 Initializing demo scraper...", 0.1))
+        time.sleep(1)
         
-        progress_queue.put(("warning", "⚠️ Selenium not supported on Streamlit Cloud", None))
-        progress_queue.put(("progress", "📊 Generating demo data instead...", 0.5))
-        time.sleep(2)
+        progress_queue.put(("warning", "⚠️ Note: This is demo mode (Selenium not supported on cloud)", None))
+        time.sleep(1)
         
-        # Create demo data for now
+        # Create demo data quickly
         demo_data = []
-        for rating in rating_limits:
-            if rating_limits[rating] > 0:
-                for page in range(1, min(rating_limits[rating] + 1, 3)):  # Max 2 pages demo
-                    for review_num in range(1, 6):  # 5 reviews per page
-                        demo_data.append({
-                            'star_filter': rating,
-                            'actual_rating': rating,
-                            'page': page,
-                            'date_time': f"2024-{rating:02d}-{review_num:02d} 1{page}:{review_num}0",
-                            'comment': f"Demo review {review_num} for {rating} stars - This is sample data since Selenium is not available on Streamlit Cloud."
-                        })
+        total_ratings = len([r for r in rating_limits.values() if r > 0])
+        current_rating = 0
+        
+        for rating in range(1, 6):
+            if rating not in rating_limits or rating_limits[rating] == 0:
+                continue
+                
+            current_rating += 1
+            base_progress = 0.2 + (current_rating / total_ratings) * 0.6
+            
+            progress_queue.put(("progress", f"🌟 Generating {rating}-star demo reviews...", base_progress))
+            time.sleep(0.5)  # Short delay
+            
+            max_pages = min(rating_limits[rating], 2)  # Limit to 2 pages for demo
+            
+            for page in range(1, max_pages + 1):
+                progress_queue.put(("progress", f"📄 Demo page {page}/{max_pages} for {rating}⭐", base_progress + 0.1))
+                
+                # Generate 3-5 demo reviews per page
+                for review_num in range(1, 4):  # 3 reviews per page
+                    demo_data.append({
+                        'star_filter': rating,
+                        'actual_rating': rating,
+                        'page': page,
+                        'date_time': f"2024-{rating:02d}-{page:02d} 1{review_num}:30",
+                        'comment': f"Demo review {review_num} for {rating} stars on page {page}. This product meets expectations and delivery was prompt."
+                    })
+                
+                time.sleep(0.3)  # Small delay between pages
+        
+        progress_queue.put(("progress", "📊 Finalizing demo results...", 0.9))
+        time.sleep(0.5)
         
         if demo_data:
             df = pd.DataFrame(demo_data)
-            progress_queue.put(("data", "📈 Demo data generated!", df))
-            progress_queue.put(("complete", f"🎉 Generated {len(df)} demo reviews! (Selenium not available on cloud)", None))
+            progress_queue.put(("data", "📈 Demo data ready!", df))
+            progress_queue.put(("complete", f"🎉 Generated {len(df)} demo reviews in {len(demo_data)//3} pages! (Demo mode)", None))
             return df
         else:
             progress_queue.put(("error", "❌ No demo data generated", None))
             return None
             
     except Exception as e:
-        progress_queue.put(("error", f"❌ Error: {str(e)}", None))
+        progress_queue.put(("error", f"❌ Demo error: {str(e)}", None))
         return None
