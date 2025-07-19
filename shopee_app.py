@@ -171,33 +171,8 @@ with st.sidebar.expander("⚙️ Advanced Settings"):
 # Export Options
 with st.sidebar.expander("📊 Export Options"):
     include_timestamps = st.checkbox("📅 Include Timestamps", value=True)
-    include_media_info = st.checkbox("📸 Include Media Info", value=False)
     clean_text = st.checkbox("🧹 Clean Text", value=True, help="Remove extra spaces and normalize text")
-
-# Keep-Alive Settings
-with st.sidebar.expander("🔄 Keep-Alive Settings"):
-    auto_refresh = st.checkbox(
-        "💓 Keep App Awake", 
-        value=st.session_state.auto_refresh_enabled,
-        help="Automatically refresh app every 5 minutes to prevent timeout"
-    )
-    st.session_state.auto_refresh_enabled = auto_refresh
     
-    if auto_refresh:
-        refresh_interval = st.slider(
-            "⏱️ Refresh Interval (minutes)", 
-            min_value=1, 
-            max_value=30, 
-            value=5,
-            help="How often to refresh the app when idle"
-        )
-        st.info(f"🔄 App will auto-refresh every {refresh_interval} minutes")
-    
-    # Manual refresh button
-    if st.button("🔄 Refresh Now", help="Manually refresh the app"):
-        st.session_state.last_activity = datetime.now()
-        st.rerun()
-
 # Main Interface
 col1, col2 = st.columns([2, 1])
 
@@ -569,3 +544,14 @@ if st.session_state.auto_refresh_enabled:
         resetIdleTimer();
     </script>
     """, unsafe_allow_html=True)
+
+# KEEP - at the bottom of the file
+if st.session_state.auto_refresh_enabled:
+    time_since_activity = datetime.now() - st.session_state.last_activity
+    minutes_since_activity = time_since_activity.total_seconds() / 60
+    
+    # Auto-refresh every 5 minutes when idle
+    if not st.session_state.scraping_active and minutes_since_activity >= 5:
+        st.session_state.keep_alive_counter += 1
+        st.session_state.last_activity = datetime.now()
+        st.rerun()
